@@ -125,7 +125,8 @@ class MHEBase(ABC, Estimator):
 
     def get_trajectory(self) -> np.ndarray:
         """Return the current state trajectory estimate."""
-        return self._x_traj.copy()
+        result: np.ndarray = self._x_traj.copy()
+        return result
 
     @property
     def horizon_filled(self) -> bool:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -153,7 +153,7 @@ def create_supervisor(
     ntheta: int = 2,
     pe_window: int = 100,
     pe_threshold: float = 0.1,
-    **mode_kwargs,
+    **mode_kwargs: Any,
 ) -> Supervisor:
     """Factory function for creating a supervisor.
 

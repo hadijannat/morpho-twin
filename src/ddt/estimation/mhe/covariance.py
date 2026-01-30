@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 try:
@@ -76,7 +79,8 @@ def _extract_from_hessian(
             eigvals = np.linalg.eigvalsh(cov)
             if np.min(eigvals) < 0:
                 cov += (abs(np.min(eigvals)) + 1e-6) * np.eye(ntheta)
-            return cov
+            result: np.ndarray = cov
+            return result
         except np.linalg.LinAlgError:
             return np.eye(ntheta) * 0.1
 
@@ -88,7 +92,7 @@ def compute_fim_from_trajectory(
     x_traj: np.ndarray,
     u_traj: np.ndarray,
     theta: np.ndarray,
-    C_func: callable,
+    C_func: Callable[..., Any],
     R_inv: np.ndarray,
 ) -> np.ndarray:
     """Compute Fisher Information Matrix from trajectory.
@@ -155,7 +159,9 @@ def estimate_covariance_from_fim(
         if np.min(eigvals) < 0:
             post_cov += (abs(np.min(eigvals)) + 1e-8) * np.eye(ntheta)
 
-        return post_cov
+        result: np.ndarray = post_cov
+        return result
 
     except np.linalg.LinAlgError:
-        return prior_cov.copy()
+        result = prior_cov.copy()
+        return result

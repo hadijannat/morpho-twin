@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 
@@ -27,15 +30,16 @@ def propagate_sensitivity(
     Returns:
         Updated sensitivity matrix S_next (nx, ntheta)
     """
-    return A @ S_prev + C_theta
+    result: np.ndarray = A @ S_prev + C_theta
+    return result
 
 
 def compute_fim_prediction(
     x_traj: np.ndarray,
     u_traj: np.ndarray,
     theta: np.ndarray,
-    A_func: callable,
-    C_func: callable,
+    A_func: Callable[..., Any],
+    C_func: Callable[..., Any],
     R_inv: np.ndarray,
     S0: np.ndarray | None = None,
 ) -> np.ndarray:
@@ -103,15 +107,16 @@ def compute_fim_increment(
     Returns:
         FIM increment (ntheta, ntheta)
     """
-    return S.T @ R_inv @ S
+    result: np.ndarray = S.T @ R_inv @ S
+    return result
 
 
 def fim_from_trajectory_linearization(
     x_ref: np.ndarray,
     u_ref: np.ndarray,
     theta: np.ndarray,
-    model_A: callable,
-    model_C: callable,
+    model_A: Callable[..., Any],
+    model_C: Callable[..., Any],
     R_inv: np.ndarray,
 ) -> tuple[np.ndarray, list[np.ndarray]]:
     """Compute FIM and sensitivities by linearizing along reference trajectory.

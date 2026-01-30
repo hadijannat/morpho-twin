@@ -168,6 +168,7 @@ class AcadosMHE(MHEBase):
             u_data = np.vstack([u_data[0:1], u_data])
 
         # Update solver with current data
+        assert self._acados_solver is not None
         solver = self._acados_solver
 
         # Set initial state constraint
@@ -231,7 +232,8 @@ class AcadosMHE(MHEBase):
         """
         N = len(u_traj)
         if N < 2:
-            return self._theta_hat.copy()
+            result: np.ndarray = self._theta_hat.copy()
+            return result
 
         # Build regression
         x_k = x_traj[:-1].flatten()
@@ -244,10 +246,11 @@ class AcadosMHE(MHEBase):
         # Regularized least squares
         reg = 1e-6 * np.eye(2)
         try:
-            theta = np.linalg.solve(Phi.T @ Phi + reg, Phi.T @ y)
+            theta: np.ndarray = np.linalg.solve(Phi.T @ Phi + reg, Phi.T @ y)
             return theta
         except np.linalg.LinAlgError:
-            return self._theta_hat.copy()
+            fallback: np.ndarray = self._theta_hat.copy()
+            return fallback
 
     def __del__(self) -> None:
         """Cleanup generated code."""

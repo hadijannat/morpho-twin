@@ -139,6 +139,7 @@ class CBFQPSafetyFilter(SafetyFilter):
         # => b*u <= x_max - a*x + (1-α)*(x_max - x) + ε_robust
 
         # Get barrier value and gradient
+        assert self._barrier is not None
         h = self._barrier.evaluate(x)
         grad_h = self._barrier.gradient(x)
 
@@ -173,6 +174,7 @@ class CBFQPSafetyFilter(SafetyFilter):
         # If upper bound active: h_next = x_max - a*x - b*u
 
         # Simplified: use all barrier constraints
+        assert self._barrier is not None
         constraints = self._barrier.get_all_constraints(
             x=x,
             f=np.array([a * x[0]]),  # f(x) for autonomous part
@@ -234,13 +236,16 @@ class CBFQPSafetyFilter(SafetyFilter):
             )
             self._qp_initialized = True
         else:
+            assert self._qp_solver is not None
             self._qp_solver.update(q=q, l=lb, u=ub, Px=P.data, Ax=A.data)
 
+        assert self._qp_solver is not None
         result = self._qp_solver.solve()
 
         if result.info.status != "solved":
             # Fallback: clamp to input bounds
-            return np.clip(u_nom, self.u_min, self.u_max)
+            fallback: np.ndarray = np.clip(u_nom, self.u_min, self.u_max)
+            return fallback
 
         u_safe = result.x[:nu]
         slack = result.x[nu:]
@@ -250,11 +255,13 @@ class CBFQPSafetyFilter(SafetyFilter):
             # Could log this for monitoring
             pass
 
-        return u_safe
+        u_result: np.ndarray = u_safe
+        return u_result
 
     def get_barrier_value(self, x: np.ndarray) -> float:
         """Get current barrier function value."""
         x = np.atleast_1d(x)
+        assert self._barrier is not None
         return self._barrier.evaluate(x)
 
     def is_safe(self, x: np.ndarray, margin: float = 0.0) -> bool:

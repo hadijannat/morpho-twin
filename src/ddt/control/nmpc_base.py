@@ -121,7 +121,8 @@ class NMPCBase(ABC, Controller):
         self._initialized = True
 
         # Return first control action
-        return u_opt[0].copy()
+        result: np.ndarray = u_opt[0].copy()
+        return result
 
     @abstractmethod
     def _solve_nmpc(

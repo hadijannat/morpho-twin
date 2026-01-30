@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -15,6 +15,7 @@ except ImportError:
 from .dual_control import compute_fim_prediction
 from .nmpc_base import NMPCBase
 from .ocp import build_constraint_vectors, build_discrete_dynamics, build_tracking_cost
+from .ocp.dynamics import DiscreteDynamics
 from .solvers.casadi_backend import CasADiSolver
 
 if TYPE_CHECKING:
@@ -34,7 +35,7 @@ class CasADiNMPC(NMPCBase):
     print_level: int = 0
 
     _solver: CasADiSolver | None = field(default=None, init=False)
-    _dynamics: build_discrete_dynamics = field(init=False)
+    _dynamics: DiscreteDynamics | Any = field(init=False)
     _w_prev: np.ndarray | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
@@ -91,6 +92,7 @@ class CasADiNMPC(NMPCBase):
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Solve the NMPC optimization problem."""
         # Solve with frozen theta
+        assert self._solver is not None
         u_opt, x_opt, success = self._solver.solve(
             x0=x0,
             x_ref=ref,
@@ -149,7 +151,8 @@ class CasADiNMPC(NMPCBase):
                 u_probe = u_opt[k] + self.lambda_info * probe * uncertainty
                 # Respect constraints
                 u_modified[k] = np.clip(u_probe, self.u_min, self.u_max)
-            return u_modified
+            result: np.ndarray = u_modified
+            return result
 
         return u_opt
 

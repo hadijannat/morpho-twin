@@ -167,6 +167,7 @@ class AcadosSolver:
         Args:
             theta: Parameter estimate for linearization
         """
+        assert self._acados_solver is not None
         solver = self._acados_solver
         N = self.horizon
 
@@ -197,6 +198,7 @@ class AcadosSolver:
             x_opt: Optimal state trajectory (N+1, nx)
             success: True if solver converged
         """
+        assert self._acados_solver is not None
         solver = self._acados_solver
         N = self.horizon
         nx = self.dynamics.nx

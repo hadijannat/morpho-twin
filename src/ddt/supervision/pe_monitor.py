@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -130,7 +132,8 @@ class PEMonitor:
 
     def get_fim(self) -> np.ndarray:
         """Get current rolling FIM."""
-        return self._rolling_fim.copy()
+        result: np.ndarray = self._rolling_fim.copy()
+        return result
 
     def get_status(self) -> PEStatus:
         """Get current PE status without update."""
@@ -141,7 +144,7 @@ def compute_regressor_from_estimate(
     x: np.ndarray,
     u: np.ndarray,
     theta: np.ndarray,
-    sensitivity_func: callable | None = None,
+    sensitivity_func: Callable[..., Any] | None = None,
 ) -> np.ndarray:
     """Compute regressor for PE monitoring.
 

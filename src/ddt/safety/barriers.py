@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -126,7 +127,8 @@ class EllipsoidBarrier(BarrierFunction):
         """Gradient ∇h = -2 P (x - c)."""
         x = np.atleast_1d(x)
         dx = x - self.center
-        return -2.0 * self.P @ dx
+        result: np.ndarray = -2.0 * self.P @ dx
+        return result
 
     def lie_derivatives(
         self,
@@ -149,7 +151,7 @@ class CompositeBarrier(BarrierFunction):
     Uses min-composition: h(x) = min_i h_i(x)
     """
 
-    barriers: list[BarrierFunction]
+    barriers: Sequence[BarrierFunction]
 
     def evaluate(self, x: np.ndarray) -> float:
         """Return minimum barrier value."""

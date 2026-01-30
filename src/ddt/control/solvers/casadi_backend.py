@@ -119,7 +119,7 @@ class CasADiSolver:
         }
 
         self._nlp_solver = ca.nlpsol("nmpc", "ipopt", nlp, opts)
-        self._n_w = w.shape[0]
+        self._n_w = w.shape[0]  # type: ignore[attr-defined]
         self._n_p = p.shape[0]
         self._lbw = lbw
         self._ubw = ubw
@@ -154,6 +154,7 @@ class CasADiSolver:
             w0 = self._build_initial_guess(x0)
 
         # Solve
+        assert self._nlp_solver is not None
         sol = self._nlp_solver(
             x0=w0,
             lbx=self._lbw,

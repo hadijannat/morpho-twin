@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 
@@ -51,7 +54,7 @@ def compute_worst_case_dynamics_bound(
     u: np.ndarray,
     theta_nom: np.ndarray,
     theta_cov: np.ndarray,
-    dynamics_jacobian_theta: callable,
+    dynamics_jacobian_theta: Callable[..., Any],
     confidence: float = 0.95,
 ) -> float:
     """Compute worst-case dynamics error bound.

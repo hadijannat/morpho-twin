@@ -225,7 +225,7 @@ class CasADiMHE(MHEBase):
         p.extend(theta_prior.tolist())
         p.extend(P0_diag.tolist())
         p.extend(P_theta_diag.tolist())
-        p = np.array(p)
+        p_arr = np.array(p)
 
         # Initial guess (warm start)
         if self._w_opt_prev is not None:
@@ -245,13 +245,14 @@ class CasADiMHE(MHEBase):
             w0[idx : idx + ntheta] = theta_prior
 
         # Solve
+        assert self._nlp_solver is not None
         sol = self._nlp_solver(
             x0=w0,
             lbx=self._lbw,
             ubx=self._ubw,
             lbg=self._lbg,
             ubg=self._ubg,
-            p=p,
+            p=p_arr,
         )
 
         w_opt = np.array(sol["x"]).flatten()

@@ -41,11 +41,14 @@ def make_estimator(cfg: AppConfig) -> Estimator:
 
     elif cfg.estimation.type == "mhe":
         # Try acados first, fall back to CasADi
-        mhe_cfg = cfg.estimation.mhe
-        if mhe_cfg is None:
-            from .estimation.mhe.config import MHEConfig
+        from .estimation.mhe.config import MHEConfig as MHEConfigInternal
 
-            mhe_cfg = MHEConfig()
+        mhe_cfg_raw = cfg.estimation.mhe
+        if mhe_cfg_raw is None:
+            mhe_cfg = MHEConfigInternal()
+        else:
+            # Convert config to internal MHE config type
+            mhe_cfg = MHEConfigInternal.model_validate(mhe_cfg_raw.model_dump())
 
         if mhe_cfg.solver.backend == "acados":
             try:

@@ -61,7 +61,7 @@ def d_optimal_cost(
         sign, logdet = np.linalg.slogdet(fim_reg)
         if sign <= 0:
             return 1e6
-        return -logdet
+        return float(-logdet)
     except np.linalg.LinAlgError:
         return 1e6
 
@@ -173,7 +173,8 @@ def compute_probing_input_modification(
         u_probe = u_nominal[j] + lambda_info * grad_approx
         u_modified[j] = np.clip(u_probe, u_min, u_max)
 
-    return u_modified
+    result: np.ndarray = u_modified
+    return result
 
 
 def adaptive_lambda_info(

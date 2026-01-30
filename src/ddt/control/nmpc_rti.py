@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -14,9 +14,10 @@ try:
 except ImportError:
     ACADOS_AVAILABLE = False
 
-from .dual_control import fim_from_trajectory_linearization
-from .nmpc_base import NMPCBase, freeze_theta
+from .dual_control.fim_compute import fim_from_trajectory_linearization
+from .nmpc_base import NMPCBase, freeze_theta  # noqa: F401
 from .ocp import build_constraint_vectors, build_discrete_dynamics, build_tracking_cost
+from .ocp.dynamics import DiscreteDynamics
 from .solvers.acados_backend import AcadosSolver
 
 if TYPE_CHECKING:
@@ -39,7 +40,7 @@ class RTINMPC(NMPCBase):
     tol: float = 1e-6
 
     _solver: AcadosSolver | None = field(default=None, init=False)
-    _dynamics: build_discrete_dynamics = field(init=False)
+    _dynamics: DiscreteDynamics | Any = field(init=False)
     _prepared: bool = field(default=False, init=False)
     _prepare_theta: np.ndarray | None = field(default=None, init=False)
 
@@ -102,6 +103,7 @@ class RTINMPC(NMPCBase):
             Predicted FIM from linearization
         """
         theta_frozen = freeze_theta(theta)
+        assert self._solver is not None
         self._solver.prepare(theta_frozen)
         self._prepared = True
         self._prepare_theta = theta_frozen
@@ -144,6 +146,7 @@ class RTINMPC(NMPCBase):
             self.prepare(theta)
 
         # Feedback
+        assert self._solver is not None
         u_opt, x_opt, success = self._solver.feedback(x0, ref)
 
         if not success:
@@ -201,13 +204,14 @@ class RTINMPC(NMPCBase):
                 probe = 0.1 * np.sin(2 * np.pi * k / max(self.horizon, 1))
                 u_probe = u_opt[k] + self.lambda_info * probe * uncertainty
                 u_modified[k] = np.clip(u_probe, self.u_min, self.u_max)
-            return u_modified
+            result: np.ndarray = u_modified
+            return result
 
         return u_opt
 
-    def get_timing_info(self) -> dict:
+    def get_timing_info(self) -> dict[str, float]:
         """Get solver timing information for real-time analysis."""
-        if self._solver._acados_solver is not None:
+        if self._solver is not None and self._solver._acados_solver is not None:
             stats = self._solver._acados_solver.get_stats("time_tot")
             return {"total_time_s": float(stats) if stats else 0.0}
         return {"total_time_s": 0.0}

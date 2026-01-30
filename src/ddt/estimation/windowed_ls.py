@@ -34,12 +34,12 @@ class WindowedLeastSquaresEstimator(Estimator):
         self._theta = np.array([1.0, 0.1], dtype=float)
 
     def update(self, y: np.ndarray, u_applied: np.ndarray) -> Estimate:
-        y = float(np.asarray(y).reshape(()))
-        u = float(np.asarray(u_applied).reshape(()))
+        y_val = float(np.asarray(y).reshape(()))
+        u_val = float(np.asarray(u_applied).reshape(()))
 
         # store y and u; we treat y as x for this simple demo
-        self._ys.append(y)
-        self._us.append(u)
+        self._ys.append(y_val)
+        self._us.append(u_val)
         if len(self._ys) > self.window + 1:
             self._ys.popleft()
         if len(self._us) > self.window + 1:
@@ -68,5 +68,5 @@ class WindowedLeastSquaresEstimator(Estimator):
             s2 = float(np.mean(resid**2)) if resid.size else 1.0
             theta_cov = s2 * np.linalg.inv(Phi.T @ Phi + reg)
 
-        x_hat = np.array([y], dtype=float)
+        x_hat = np.array([y_val], dtype=float)
         return Estimate(x_hat=x_hat, theta_hat=self._theta.copy(), theta_cov=theta_cov)

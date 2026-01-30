@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 
@@ -69,12 +72,15 @@ def shift_parameters(
         Shifted parameter estimate
     """
     if mode == "static":
-        return theta.copy()
+        result: np.ndarray = theta.copy()
+        return result
     elif mode == "random_walk":
         if random_walk_std is None:
-            return theta.copy()
+            result = theta.copy()
+            return result
         # Don't actually add noise (that would be wrong), just keep the estimate
-        return theta.copy()
+        result = theta.copy()
+        return result
     else:
         raise ValueError(f"Unknown parameter mode: {mode}")
 
@@ -85,7 +91,7 @@ def compute_arrival_cost_prior(
     P_old: np.ndarray,
     x_new_meas: np.ndarray,
     u_old: np.ndarray,
-    model_func: callable,
+    model_func: Callable[..., Any],
     Q: np.ndarray,
     R: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
