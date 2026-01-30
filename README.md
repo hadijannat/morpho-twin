@@ -6,7 +6,7 @@ Morpho Twin combines Moving Horizon Estimation (MHE) for parameter identificatio
 
 ## Features
 
-- **Moving Horizon Estimation** — Online parameter identification with covariance tracking
+- **Moving Horizon Estimation** — Online parameter identification with covariance tracking and optional EKF arrival cost
 - **Dual-Control NMPC** — Real-Time Iteration (RTI) with Fisher Information probing for active learning
 - **CBF Safety Filter** — Quadratic program safety layer with robust margins from parameter uncertainty
 - **Supervision System** — Persistence of excitation monitoring and adaptive mode management
@@ -64,7 +64,7 @@ morpho --config configs/nmpc_demo.yaml     # NMPC/RTI
 
 | Module | Purpose |
 |--------|---------|
-| `ddt.estimation` | MHE with CasADi/acados backends, covariance extraction |
+| `ddt.estimation` | MHE with CasADi/acados backends, EKF arrival cost, covariance extraction |
 | `ddt.control` | NMPC/RTI with dual-control FIM objective |
 | `ddt.safety` | CBF-QP filter, barrier functions, robust margins |
 | `ddt.supervision` | PE monitoring, mode management (NORMAL/CONSERVATIVE/SAFE_STOP) |
@@ -76,31 +76,34 @@ All components are configured via YAML:
 
 ```yaml
 # configs/full_demo.yaml
-model:
-  type: linear
-  dt: 0.1
-  a: 0.95
-  b: 0.5
+plant:
+  type: linear_scalar
+  a_true: 1.02
+  b_true: 0.10
 
 estimation:
   type: mhe
   mhe:
     horizon: 20
-    solver_backend: casadi
+    use_ekf_arrival_cost: false  # Enable EKF-based arrival cost updating
+    solver:
+      backend: casadi
 
 control:
-  type: nmpc_rti
+  type: nmpc_casadi
   nmpc:
-    horizon: 10
-    lambda_info: 0.01  # Dual-control probing weight
+    horizon: 20
+    lambda_info: 0.01       # Dual-control probing weight
+    fim_criterion: d_optimal  # Options: d_optimal, a_optimal, e_optimal
 
 safety:
   type: cbf_qp
   cbf:
     alpha: 0.5
-    slack_penalty: 1000.0
+    slack_weight: 1000.0
 
 supervision:
+  enabled: true
   pe:
     window: 100
     lambda_threshold: 0.1
@@ -135,16 +138,23 @@ where `σ_θ = √trace(Σ_θθ)` and `margin_factor` adapts with operating mode
 NMPC includes Fisher Information to encourage parameter identifiability:
 
 ```
-J = J_tracking + λ_info · tr((F + εI)^{-1})
+J = J_tracking + λ_info · J_FIM
 ```
+
+where `J_FIM` depends on the selected criterion (configured via `fim_criterion`):
+- **D-Optimality** (default): `-log(det(F))` — numerically stable, no matrix inversion
+- **A-Optimality**: `tr(F^{-1})` — minimizes average variance
+- **E-Optimality**: `1/λ_min(F)` — targets worst-case direction
 
 ## Testing
 
 ```bash
 pytest                           # All tests
 pytest tests/unit/               # Unit tests only
+pytest tests/integration/        # Integration tests
 pytest -k "stop_gradient"        # Causal correctness tests
 pytest -k "cbf"                  # Safety filter tests
+pytest -k "feedback_suicide"     # Data lineage verification (MHE uses u_applied)
 ```
 
 ## Documentation
