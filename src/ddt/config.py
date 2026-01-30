@@ -73,6 +73,10 @@ class MHEConfig(BaseModel):
     parameters: MHEParameterConfig = Field(default_factory=MHEParameterConfig)
     solver: MHESolverConfig = Field(default_factory=MHESolverConfig)
     arrival_cost_scaling: float = Field(default=1.0)
+    use_ekf_arrival_cost: bool = Field(
+        default=False,
+        description="Use EKF to dynamically update arrival cost prior.",
+    )
 
 
 # =============================================================================
@@ -101,6 +105,10 @@ class NMPCConfig(BaseModel):
     Q: list[float] = Field(default=[10.0], description="State tracking weight diagonal.")
     R_u: list[float] = Field(default=[0.1], description="Input regularization diagonal.")
     lambda_info: float = Field(default=0.01, description="FIM probing weight for dual-control.")
+    fim_criterion: str = Field(
+        default="d_optimal",
+        description="FIM criterion: 'd_optimal' (recommended), 'a_optimal', or 'e_optimal'.",
+    )
     solver_backend: str = Field(default="casadi", description="'acados' or 'casadi'.")
     max_iter: int = Field(default=50, description="Max solver iterations (1 for RTI).")
     rti_mode: bool = Field(default=True, description="Use RTI scheme for acados.")

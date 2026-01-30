@@ -97,6 +97,36 @@ def e_optimal_cost(
         return 1e6
 
 
+def compute_fim_cost(
+    fim: np.ndarray,
+    criterion: str = "d_optimal",
+    regularization: float = 1e-6,
+) -> float:
+    """Unified FIM cost computation. Default is D-Optimality.
+
+    D-Optimality is preferred because it uses slogdet (no explicit inversion),
+    making it numerically stable when excitation is low.
+
+    Args:
+        fim: Fisher Information Matrix (ntheta, ntheta)
+        criterion: 'd_optimal' (default), 'a_optimal', or 'e_optimal'
+        regularization: Regularization for numerical stability
+
+    Returns:
+        FIM cost value according to selected criterion
+
+    Raises:
+        ValueError: If criterion is unknown
+    """
+    if criterion == "a_optimal":
+        return a_optimal_cost(fim, regularization)
+    elif criterion == "d_optimal":
+        return d_optimal_cost(fim, regularization)
+    elif criterion == "e_optimal":
+        return e_optimal_cost(fim, regularization)
+    raise ValueError(f"Unknown FIM criterion: {criterion}")
+
+
 def compute_probing_input_modification(
     u_nominal: np.ndarray,
     fim: np.ndarray,

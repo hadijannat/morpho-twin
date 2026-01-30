@@ -63,6 +63,7 @@ class NMPCBase(ABC, Controller):
     Q: np.ndarray = field(default_factory=lambda: np.array([[10.0]]))
     R_u: np.ndarray = field(default_factory=lambda: np.array([[0.1]]))
     lambda_info: float = 0.01  # FIM probing weight
+    fim_criterion: str = "d_optimal"  # FIM criterion for dual-control
 
     # Constraints
     x_min: np.ndarray = field(default_factory=lambda: np.array([-np.inf]))

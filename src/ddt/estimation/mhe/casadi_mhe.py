@@ -215,10 +215,13 @@ class CasADiMHE(MHEBase):
         for i in range(N):
             p.extend(u_data[i].tolist())
 
-        # Priors
-        x_prior = y_data[0]  # Use first measurement as prior
+        # Priors - use EKF arrival cost if available
+        if self._ekf_updater is not None and self._ekf_updater.is_initialized:
+            x_prior, P0_diag = self._ekf_updater.get_arrival_cost_prior()
+        else:
+            x_prior = y_data[0]  # Use first measurement as prior
+            P0_diag = np.ones(nx) * 10.0  # Loose prior on initial state
         theta_prior = self._theta_hat
-        P0_diag = np.ones(nx) * 10.0  # Loose prior on initial state
         P_theta_diag = np.diag(self._theta_cov)
 
         p.extend(x_prior.tolist())
@@ -281,5 +284,19 @@ class CasADiMHE(MHEBase):
             R_inv=R_inv,
         )
         cov = estimate_covariance_from_fim(fim, self._theta_cov)
+
+        # Update EKF arrival cost updater with MHE solution
+        if self._ekf_updater is not None:
+            # Sync EKF with MHE estimate at window start
+            theta_cov_diag = np.diag(self._theta_cov)
+            if nx <= len(theta_cov_diag):
+                P_mhe_start = theta_cov_diag[:nx]
+            else:
+                P_mhe_start = np.ones(nx) * 1.0
+            self._ekf_updater.update_from_mhe_solution(
+                x_mhe_start=x_opt[0],
+                P_mhe=P_mhe_start,
+                theta=theta_opt,
+            )
 
         return x_opt, theta_opt, cov

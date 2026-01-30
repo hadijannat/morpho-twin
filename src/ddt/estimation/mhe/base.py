@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from ...interfaces import Estimate, Estimator
+from .ekf_arrival import EKFArrivalCostUpdater
 
 if TYPE_CHECKING:
     from .config import MHEConfig
@@ -44,6 +45,7 @@ class MHEBase(ABC, Estimator):
     _theta_hat: np.ndarray = field(init=False)
     _theta_cov: np.ndarray = field(init=False)
     _initialized: bool = field(default=False, init=False)
+    _ekf_updater: EKFArrivalCostUpdater | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         self._y_buffer = []
@@ -53,6 +55,17 @@ class MHEBase(ABC, Estimator):
         self._theta_cov = np.diag(self.cfg.parameters.P_theta_diag).astype(np.float64)
         self._initialized = False
 
+        # Initialize EKF arrival cost updater if enabled
+        if self.cfg.use_ekf_arrival_cost:
+            Q = np.diag(self.cfg.noise.Q_diag).astype(np.float64)
+            R = np.diag(self.cfg.noise.R_diag).astype(np.float64)
+            self._ekf_updater = EKFArrivalCostUpdater(
+                nx=self.nx,
+                ntheta=self.ntheta,
+                Q=Q,
+                R=R,
+            )
+
     def reset(self) -> None:
         """Reset estimator state."""
         self._y_buffer.clear()
@@ -61,6 +74,8 @@ class MHEBase(ABC, Estimator):
         self._theta_hat = np.array(self.cfg.parameters.theta_init, dtype=np.float64)
         self._theta_cov = np.diag(self.cfg.parameters.P_theta_diag).astype(np.float64)
         self._initialized = False
+        if self._ekf_updater is not None:
+            self._ekf_updater.reset()
 
     def update(self, y: np.ndarray, u_applied: np.ndarray) -> Estimate:
         """Update estimate with new measurement and applied input.

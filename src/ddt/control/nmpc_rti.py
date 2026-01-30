@@ -38,6 +38,7 @@ class RTINMPC(NMPCBase):
     rti_mode: bool = True
     max_sqp_iter: int = 1  # 1 for RTI
     tol: float = 1e-6
+    fim_criterion: str = "d_optimal"
 
     _solver: AcadosSolver | None = field(default=None, init=False)
     _dynamics: DiscreteDynamics | Any = field(init=False)

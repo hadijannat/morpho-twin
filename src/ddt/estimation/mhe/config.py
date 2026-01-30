@@ -62,3 +62,7 @@ class MHEConfig(BaseModel):
         default=1.0,
         description="Scaling factor for arrival cost term.",
     )
+    use_ekf_arrival_cost: bool = Field(
+        default=False,
+        description="Use EKF to dynamically update arrival cost prior.",
+    )

@@ -33,6 +33,7 @@ class CasADiNMPC(NMPCBase):
     max_iter: int = 50
     tol: float = 1e-6
     print_level: int = 0
+    fim_criterion: str = "d_optimal"
 
     _solver: CasADiSolver | None = field(default=None, init=False)
     _dynamics: DiscreteDynamics | Any = field(init=False)

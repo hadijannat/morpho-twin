@@ -6,6 +6,7 @@ Provides production-grade MHE with:
 - CasADi + IPOPT fallback
 - Covariance extraction from Hessian
 - Warm-start trajectory shifting
+- EKF-based arrival cost updating
 """
 
 from __future__ import annotations
@@ -13,11 +14,13 @@ from __future__ import annotations
 from .base import MHEBase
 from .casadi_mhe import CasADiMHE
 from .covariance import extract_covariance
+from .ekf_arrival import EKFArrivalCostUpdater
 from .warm_start import shift_trajectory
 
 __all__ = [
     "MHEBase",
     "CasADiMHE",
+    "EKFArrivalCostUpdater",
     "extract_covariance",
     "shift_trajectory",
 ]
