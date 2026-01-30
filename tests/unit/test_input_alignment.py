@@ -76,7 +76,7 @@ def test_windowed_ls_regression_structure():
     y_sequence = [1.0, 2.0, 3.0, 4.0]
     u_sequence = [0.1, 0.2, 0.3, 0.4]
 
-    for y, u in zip(y_sequence, u_sequence):
+    for y, u in zip(y_sequence, u_sequence, strict=True):
         estimator.update(np.array([y]), np.array([u]))
 
     # Now the regression should be:
